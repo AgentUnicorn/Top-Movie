@@ -113,7 +113,7 @@ function App() {
         <Trend trendList ={trend}/>
       </Col> */}
 
-      <Carousel>
+      {/* <Carousel>
             <Carousel.Item>
                 <img
                     className="d-block w-100"
@@ -149,7 +149,7 @@ function App() {
                     <p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
                 </Carousel.Caption>
             </Carousel.Item>
-      </Carousel>
+      </Carousel> */}
       
       <Container fluid>
         <Row>

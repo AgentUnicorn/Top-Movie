@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import logo from "./logo.png";
 import Movie from "./components/Movie";
+import ReactModal from "react-modal";
+import YouTube from "@u-wave/react-youtube";
 // import Trend from './components/Trend'
 import {
   Navbar,
   Form,
   FormControl,
   Button,
-  Dropdown,
   Container,
   Row,
   Col,
@@ -25,9 +26,12 @@ let keyword = "";
 let movieList = []; // keep the original movie list
 // let trendList = []
 let page = 1;
+let videoKey = "";
 
 function App() {
   let [movie, setMovie] = useState(null);
+  let [toggleModal, setToggleModal] = useState(false);
+  let [videoResults, setVideoResults] = useState(false);
   let currentPlaying = async () => {
     let url = `https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=en-US&page=1`;
     let data = await fetch(url);
@@ -107,8 +111,44 @@ function App() {
     setMovie(sortedMovie);
   };
 
+  let loadVideo = async videoId => {
+    console.log("videoId: ", videoId);
+    let url = `https://api.themoviedb.org/3/movie/${videoId}/videos?api_key=${apiKey}&language=en-US`;
+    let data = await fetch(url);
+    let response = await data.json();
+
+    if (response.results !== null && response.results.length !== 0) {
+      console.log("video id: ", response.results[0].key);
+      console.log(response);
+      videoKey = response.results[0].key;
+      setVideoResults(response);
+    } else {
+      console.log("no video key found");
+      setVideoResults(null);
+    }
+    setToggleModal(true);
+  };
+  // console.log(videoResults);
   return (
     <div className="App">
+      <ReactModal
+        closeTimeoutMS={1200}
+        isOpen={toggleModal}
+        onRequestClose={() => setToggleModal(false)}
+        style={{
+          overlay: {},
+          contents: {
+            width: "70%",
+            height: "70%"
+          }
+        }}
+      >
+        {videoResults !== null ? (
+          <YouTube video={videoKey} height="100%" width="100%" autoplay />
+        ) : (
+          "No Video Results found"
+        )}
+      </ReactModal>
       <Navbar className="Navbar" m="auto" variant="dark" expand="lg">
         <Navbar.Brand href="#home">
           <img
@@ -187,7 +227,7 @@ function App() {
             </ListGroup>
           </Col>
           <Col md={10}>
-            <Movie movieList={movie} />
+            <Movie movieList={movie} parentMethod={loadVideo} />
           </Col>
         </Row>
       </Container>

@@ -1,33 +1,47 @@
-import React, {useEffect, useState} from 'react';
-import './App.css';
-import logo from './logo.png'
-import Movie from './components/Movie'
+import React, { useEffect, useState } from "react";
+import "./App.css";
+import logo from "./logo.png";
+import Movie from "./components/Movie";
+import ReactModal from "react-modal";
+import YouTube from "@u-wave/react-youtube";
 // import Trend from './components/Trend'
-import {Navbar, Form, FormControl, Button, Dropdown, Container, Row, Col, Carousel, Spinner, ListGroup} from 'react-bootstrap'
+import {
+  Navbar,
+  Form,
+  FormControl,
+  Button,
+  Container,
+  Row,
+  Col,
+  Carousel,
+  Spinner,
+  ListGroup
+} from "react-bootstrap";
+//Testing branch commit
 
+require("dotenv").config();
 
-require('dotenv').config()
-
-let apiKey = `f752f095c87a67b8ca8b17c5e3810382`
-let keyword = ''
-let movieList = []  // keep the original movie list
+let apiKey = `f752f095c87a67b8ca8b17c5e3810382`;
+let keyword = "";
+let movieList = []; // keep the original movie list
 // let trendList = []
 let page = 1;
+let videoKey = "";
 
 function App() {
-  
   let [movie, setMovie] = useState(null);
+  let [toggleModal, setToggleModal] = useState(false);
+  let [videoResults, setVideoResults] = useState(false);
   let currentPlaying = async () => {
-    let url = `https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=en-US&page=1`
-    let data = await fetch(url)
-    let dataResult = await data.json()
-    console.log("result:", dataResult)
-    movieList = dataResult.results
+    let url = `https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=en-US&page=1`;
+    let data = await fetch(url);
+    let dataResult = await data.json();
+    console.log("result:", dataResult);
+    movieList = dataResult.results;
     setMovie(movieList);
-  }
+  };
 
-  useEffect(currentPlaying,[]);
-
+  useEffect(currentPlaying, []);
 
   // Trending section, not finish yet
 
@@ -48,48 +62,93 @@ function App() {
       <div>
         <Spinner animation="border" variant="danger" />
       </div>
-    )
+    );
   }
 
-  let searchByKeyword = (e) => { //function to search by keyword
-    keyword = e.target.value
-    if (keyword === '') {
-      setMovie(movieList)
+  let searchByKeyword = e => {
+    //function to search by keyword
+    keyword = e.target.value;
+    if (keyword === "") {
+      setMovie(movieList);
     } else {
-      setMovie(movie.filter((movie)=> movie.title.toLowerCase().includes(keyword.toLowerCase())));
+      setMovie(
+        movie.filter(movie =>
+          movie.title.toLowerCase().includes(keyword.toLowerCase())
+        )
+      );
     }
-  }
+  };
 
-  let loadMore=async()=>{
-    page++
-    let url= `https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=en-US&page=${page}`;
-    let data= await fetch (url);
-    let dataResult= await data.json();
-    setMovie(movie.concat(dataResult.results))
-  }
+  let loadMore = async () => {
+    page++;
+    let url = `https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=en-US&page=${page}`;
+    let data = await fetch(url);
+    let dataResult = await data.json();
+    setMovie(movie.concat(dataResult.results));
+  };
 
   let sortMostPopular = () => {
-    let sortedMovie = [...movie].sort((a,b) => b.popularity - a.popularity)
+    let sortedMovie = [...movie].sort((a, b) => b.popularity - a.popularity);
     setMovie(sortedMovie);
-  }
+  };
 
   let sortLeastPopular = () => {
-    let sortedMovie = [...movie].sort((a,b) => a.popularity - b.popularity)
+    let sortedMovie = [...movie].sort((a, b) => a.popularity - b.popularity);
     setMovie(sortedMovie);
-  }
+  };
 
   let sortMostRating = () => {
-    let sortedMovie = [...movie].sort((a,b) => b.vote_average - a.vote_average)
+    let sortedMovie = [...movie].sort(
+      (a, b) => b.vote_average - a.vote_average
+    );
     setMovie(sortedMovie);
-  }
+  };
 
   let sortLeastRating = () => {
-    let sortedMovie = [...movie].sort((a,b) => a.vote_average - b.vote_average)
+    let sortedMovie = [...movie].sort(
+      (a, b) => a.vote_average - b.vote_average
+    );
     setMovie(sortedMovie);
-  }
+  };
 
+  let loadVideo = async videoId => {
+    console.log("videoId: ", videoId);
+    let url = `https://api.themoviedb.org/3/movie/${videoId}/videos?api_key=${apiKey}&language=en-US`;
+    let data = await fetch(url);
+    let response = await data.json();
+
+    if (response.results !== null && response.results.length !== 0) {
+      console.log("video id: ", response.results[0].key);
+      console.log(response);
+      videoKey = response.results[0].key;
+      setVideoResults(response);
+    } else {
+      console.log("no video key found");
+      setVideoResults(null);
+    }
+    setToggleModal(true);
+  };
+  // console.log(videoResults);
   return (
-    <div className="App"> 
+    <div className="App">
+      <ReactModal
+        closeTimeoutMS={1200}
+        isOpen={toggleModal}
+        onRequestClose={() => setToggleModal(false)}
+        style={{
+          overlay: {},
+          contents: {
+            width: "70%",
+            height: "70%"
+          }
+        }}
+      >
+        {videoResults !== null ? (
+          <YouTube video={videoKey} height="100%" width="100%" autoplay />
+        ) : (
+          "No Video Results found"
+        )}
+      </ReactModal>
       <Navbar className="Navbar" m="auto" variant="dark" expand="lg">
         <Navbar.Brand href="#home">
           <img
@@ -101,11 +160,14 @@ function App() {
           />
           Top Movie
         </Navbar.Brand>
-          <Form inline>
-            <FormControl type="text" placeholder="Search" className="mr-sm-2" 
-              onChange={(e)=>searchByKeyword(e)}
-            />
-          </Form>
+        <Form inline>
+          <FormControl
+            type="text"
+            placeholder="Search"
+            className="mr-sm-2"
+            onChange={e => searchByKeyword(e)}
+          />
+        </Form>
       </Navbar>
 
       {/* This is trending section, but not finish yet */}
@@ -114,60 +176,63 @@ function App() {
       </Col> */}
 
       <Carousel>
-            <Carousel.Item>
-                <img
-                    className="d-block w-100"
-                    src="./starwars.jpg"
-                    alt="First slide"
-                />
-                <Carousel.Caption>
-                    <h3>First slide label</h3>
-                    <p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
-                </Carousel.Caption>
-            </Carousel.Item>
+        <Carousel.Item>
+          <img
+            className="d-block w-100"
+            src="./starwars.jpg"
+            alt="First slide"
+          />
+          <Carousel.Caption>
+            <h3>First slide label</h3>
+            <p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
+          </Carousel.Caption>
+        </Carousel.Item>
 
-            <Carousel.Item>
-                <img
-                    className="d-block w-100"
-                    src=""
-                    alt="First slide"
-                />
-                <Carousel.Caption>
-                    <h3>First slide label</h3>
-                    <p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
-                </Carousel.Caption>
-            </Carousel.Item>
+        <Carousel.Item>
+          <img className="d-block w-100" src="" alt="First slide" />
+          <Carousel.Caption>
+            <h3>First slide label</h3>
+            <p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
+          </Carousel.Caption>
+        </Carousel.Item>
 
-            <Carousel.Item>
-                <img
-                    className="d-block w-100"
-                    src=""
-                    alt="First slide"
-                />
-                <Carousel.Caption>
-                    <h3>First slide label</h3>
-                    <p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
-                </Carousel.Caption>
-            </Carousel.Item>
+        <Carousel.Item>
+          <img className="d-block w-100" src="" alt="First slide" />
+          <Carousel.Caption>
+            <h3>First slide label</h3>
+            <p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
+          </Carousel.Caption>
+        </Carousel.Item>
       </Carousel>
-      
+
       <Container fluid>
         <Row>
           <Col md={2}>
             <ListGroup variant="flush">
-                <Button variant="outline-light" onClick={()=>sortMostPopular()}>Most Popular</Button>
-                <Button variant="outline-light" onClick={()=>sortLeastPopular()}>Least Popular</Button>
-                <Button variant="outline-light" onClick={()=>sortMostRating()}>Most Rating</Button>
-                <Button variant="outline-light" onClick={()=>sortLeastRating()}>Least Rating</Button>
+              <Button variant="outline-light" onClick={() => sortMostPopular()}>
+                Most Popular
+              </Button>
+              <Button
+                variant="outline-light"
+                onClick={() => sortLeastPopular()}
+              >
+                Least Popular
+              </Button>
+              <Button variant="outline-light" onClick={() => sortMostRating()}>
+                Most Rating
+              </Button>
+              <Button variant="outline-light" onClick={() => sortLeastRating()}>
+                Least Rating
+              </Button>
             </ListGroup>
           </Col>
           <Col md={10}>
-            <Movie movieList = {movie}/>
+            <Movie movieList={movie} parentMethod={loadVideo} />
           </Col>
         </Row>
       </Container>
       <Container className="loadmore">
-        <Button onClick={()=>loadMore()}>Load More</Button>
+        <Button onClick={() => loadMore()}>Load More</Button>
       </Container>
     </div>
   );

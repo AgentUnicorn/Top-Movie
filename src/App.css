@@ -12,5 +12,49 @@
 .loadmore {
   padding-top: 2%;
   display: flex;
-  justify-content: center ;
+  justify-content: center;
+}
+.ReactModal__Overlay {
+  opacity: 0;
+  transition: opacity 2000ms ease-in-out;
+}
+
+.ReactModal__Overlay--after-open {
+  opacity: 1;
+}
+
+.ReactModal__Overlay--before-close {
+  opacity: 0;
+}
+
+.inputContainer {
+  margin-top: 2%;
+  margin-bottom: 5%;
+  width: 50%;
+}
+
+.inputRange {
+  -webkit-appearance: none;
+  width: 50px;
+  height: 20px;
+  background: red;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: 0.2s;
+  transition: opacity 0.2;
+  border-radius: 12px;
+  box-shadow: 0px 1px 10px 1px black;
+}
+
+.inputRange:hover {
+  opacity: 1;
+}
+
+.inputRange::-webkit-slider-thumb{
+  -webkit-appearance: none;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
 }
